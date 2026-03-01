@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Financeiro</title>
+<title>Financeiro App</title>
 
 <style>
 
@@ -55,6 +56,15 @@ color:black;
 .renda{color:green;}
 .despesa{color:red;}
 
+.saldo{
+font-size:22px;
+text-align:center;
+font-weight:bold;
+}
+
+.positivo{color:#22c55e;}
+.negativo{color:#ef4444;}
+
 </style>
 
 </head>
@@ -64,6 +74,8 @@ color:black;
 <h2>💰 Controle Financeiro</h2>
 
 <div class="card">
+
+<select id="mes"></select>
 
 <input type="text" id="descricao" placeholder="Descrição">
 <input type="number" id="valor" placeholder="Valor">
@@ -85,6 +97,10 @@ color:black;
 </div>
 
 <div class="card">
+<div id="saldo" class="saldo"></div>
+</div>
+
+<div class="card">
 <h3>Lista</h3>
 <div id="lista"></div>
 </div>
@@ -93,6 +109,38 @@ color:black;
 
 let dados=JSON.parse(localStorage.getItem("financeiroApp"))||{};
 
+const hoje=new Date();
+const mesSelect=document.getElementById("mes");
+
+/* MESES INFINITOS */
+function gerarMeses(){
+
+mesSelect.innerHTML="";
+
+for(let i=-60;i<120;i++){
+
+let data=new Date(hoje.getFullYear(),hoje.getMonth()+i);
+
+let nome=data.toLocaleString('pt-BR',{
+month:'long',
+year:'numeric'
+});
+
+let option=document.createElement("option");
+option.value=nome;
+option.textContent=nome;
+
+mesSelect.appendChild(option);
+
+}
+
+mesSelect.selectedIndex=60;
+
+}
+
+gerarMeses();
+
+/* Parcelamento */
 document.getElementById("parcelado").addEventListener("change",function(){
 document.getElementById("parcelas").style.display=
 this.value==="sim"?"block":"none";
@@ -111,7 +159,7 @@ let tipo=document.getElementById("tipo").value;
 let parcelado=document.getElementById("parcelado").value;
 let qtd=parseInt(document.getElementById("parcelas").value)||1;
 
-let mesAtual=new Date().toLocaleString('pt-BR',{month:'long',year:'numeric'});
+let mesAtual=mesSelect.value;
 
 if(!dados[mesAtual]) dados[mesAtual]=[];
 
@@ -122,7 +170,10 @@ for(let i=0;i<qtd;i++){
 let data=new Date();
 data.setMonth(data.getMonth()+i);
 
-let mes=data.toLocaleString('pt-BR',{month:'long',year:'numeric'});
+let mes=data.toLocaleString('pt-BR',{
+month:'long',
+year:'numeric'
+});
 
 if(!dados[mes]) dados[mes]=[];
 
@@ -154,7 +205,6 @@ atualizar();
 function excluir(mes,id){
 
 dados[mes]=dados[mes].filter(i=>i.id!==id);
-
 salvar();
 atualizar();
 
@@ -181,7 +231,7 @@ atualizar();
 
 function atualizar(){
 
-let mes=new Date().toLocaleString('pt-BR',{month:'long',year:'numeric'});
+let mes=mesSelect.value;
 
 let lista=document.getElementById("lista");
 lista.innerHTML="";
@@ -213,7 +263,14 @@ lista.appendChild(div);
 
 }
 
+let saldo=document.getElementById("saldo");
+saldo.innerHTML="💰 Saldo: R$ "+total.toFixed(2);
+
+saldo.className="saldo "+(total>=0?"positivo":"negativo");
+
 }
+
+mesSelect.addEventListener("change",atualizar);
 
 atualizar();
 
