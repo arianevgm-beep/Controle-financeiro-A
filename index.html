@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>Financeiro</title>
 
 <style>
@@ -35,9 +36,6 @@ border:none;
 font-weight:bold;
 }
 
-.renda{color:green;}
-.despesa{color:red;}
-
 .item{
 display:flex;
 justify-content:space-between;
@@ -54,7 +52,11 @@ background:#ddd;
 color:black;
 }
 
+.renda{color:green;}
+.despesa{color:red;}
+
 </style>
+
 </head>
 
 <body>
@@ -76,7 +78,7 @@ color:black;
 <option value="sim">Parcelado</option>
 </select>
 
-<input type="number" id="parcelas" placeholder="Quantidade parcelas" style="display:none">
+<input type="number" id="parcelas" placeholder="Qtd parcelas" style="display:none">
 
 <button onclick="adicionar()">Adicionar</button>
 
@@ -89,7 +91,7 @@ color:black;
 
 <script>
 
-let dados=JSON.parse(localStorage.getItem("fin"))||{};
+let dados=JSON.parse(localStorage.getItem("financeiroApp"))||{};
 
 document.getElementById("parcelado").addEventListener("change",function(){
 document.getElementById("parcelas").style.display=
@@ -97,7 +99,7 @@ this.value==="sim"?"block":"none";
 });
 
 function salvar(){
-localStorage.setItem("fin",JSON.stringify(dados));
+localStorage.setItem("financeiroApp",JSON.stringify(dados));
 }
 
 function adicionar(){
@@ -105,14 +107,17 @@ function adicionar(){
 let desc=document.getElementById("descricao").value;
 let valor=parseFloat(document.getElementById("valor").value);
 let tipo=document.getElementById("tipo").value;
+
 let parcelado=document.getElementById("parcelado").value;
-let parcelas=parseInt(document.getElementById("parcelas").value)||1;
+let qtd=parseInt(document.getElementById("parcelas").value)||1;
 
 let mesAtual=new Date().toLocaleString('pt-BR',{month:'long',year:'numeric'});
 
-if(parcelado==="sim" && parcelas>1){
+if(!dados[mesAtual]) dados[mesAtual]=[];
 
-for(let i=0;i<parcelas;i++){
+if(parcelado==="sim" && qtd>1){
+
+for(let i=0;i<qtd;i++){
 
 let data=new Date();
 data.setMonth(data.getMonth()+i);
@@ -122,8 +127,8 @@ let mes=data.toLocaleString('pt-BR',{month:'long',year:'numeric'});
 if(!dados[mes]) dados[mes]=[];
 
 dados[mes].push({
-id:Date.now()+i,
-descricao:desc+` (${i+1}/${parcelas})`,
+id:Date.now()+Math.random(),
+descricao:desc+` (${i+1}/${qtd})`,
 valor:valor,
 tipo:tipo
 });
@@ -132,10 +137,8 @@ tipo:tipo
 
 }else{
 
-if(!dados[mesAtual]) dados[mesAtual]=[];
-
 dados[mesAtual].push({
-id:Date.now(),
+id:Date.now()+Math.random(),
 descricao:desc,
 valor:valor,
 tipo:tipo
@@ -164,7 +167,7 @@ let item=dados[mes].find(i=>i.id===id);
 let novoDesc=prompt("Editar descrição",item.descricao);
 let novoValor=parseFloat(prompt("Editar valor",item.valor));
 
-if(novoDesc && novoValor){
+if(novoDesc && !isNaN(novoValor)){
 
 item.descricao=novoDesc;
 item.valor=novoValor;
@@ -183,17 +186,20 @@ let mes=new Date().toLocaleString('pt-BR',{month:'long',year:'numeric'});
 let lista=document.getElementById("lista");
 lista.innerHTML="";
 
+let total=0;
+
 if(dados[mes]){
 
 dados[mes].forEach(item=>{
+
+if(item.tipo==="renda") total+=item.valor;
+else total-=item.valor;
 
 let div=document.createElement("div");
 div.className="item "+item.tipo;
 
 div.innerHTML=`
-<span>
-${item.descricao} - R$ ${item.valor.toFixed(2)}
-</span>
+<span>${item.descricao} - R$ ${item.valor.toFixed(2)}</span>
 
 <div>
 <button onclick="editar('${mes}',${item.id})">Editar</button>
@@ -214,4 +220,4 @@ atualizar();
 </script>
 
 </body>
-</html> 
+</html>
