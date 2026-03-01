@@ -1,12 +1,13 @@
 {
   "name": "Controle Financeiro Ariane",
   "short_name": "Financeiro",
-  "description": "Aplicativo de controle financeiro mensal com rendas, despesas e parcelamentos automáticos.",
+  "description": "App de controle financeiro pessoal com rendas, despesas e parcelamentos",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#f4f6f9",
   "theme_color": "#2ecc71",
   "orientation": "portrait",
+  "lang": "pt-BR",
   "icons": [
     {
       "src": "https://cdn-icons-png.flaticon.com/512/3135/3135715.png",
@@ -19,4 +20,4 @@
       "type": "image/png"
     }
   ]
-}
+} 
