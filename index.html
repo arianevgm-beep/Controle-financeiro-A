@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Controle Financeiro</title>
+<style>
+body{
+font-family: Arial;
+background:#f4f6f9;
+margin:0;
+padding:15px;
+}
+
+h1{
+text-align:center;
+}
+
+.container{
+max-width:500px;
+margin:auto;
+}
+
+.card{
+background:white;
+padding:15px;
+border-radius:10px;
+margin-bottom:15px;
+box-shadow:0 2px 5px rgba(0,0,0,0.1);
+}
+
+input, select, button{
+width:100%;
+padding:10px;
+margin-top:5px;
+margin-bottom:10px;
+border-radius:8px;
+border:1px solid #ccc;
+}
+
+button{
+background:#4CAF50;
+color:white;
+font-weight:bold;
+border:none;
+}
+
+button:hover{
+opacity:0.9;
+}
+
+.renda{
+color:green;
+font-weight:bold;
+}
+
+.despesa{
+color:red;
+font-weight:bold;
+}
+
+.saldo-positivo{
+color:green;
+font-size:20px;
+font-weight:bold;
+}
+
+.saldo-negativo{
+color:red;
+font-size:20px;
+font-weight:bold;
+}
+
+.item{
+display:flex;
+justify-content:space-between;
+margin-bottom:8px;
+}
+
+.excluir{
+background:red;
+color:white;
+border:none;
+padding:5px 8px;
+border-radius:5px;
+}
+
+.editar{
+background:orange;
+color:white;
+border:none;
+padding:5px 8px;
+border-radius:5px;
+margin-right:5px;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+
+<h1>Controle Financeiro</h1>
+
+<div class="card">
+<label>Mês:</label>
+<select id="mesSelect"></select>
+</div>
+
+<div class="card">
+<h3>Adicionar</h3>
+
+<select id="tipo">
+<option value="renda">Renda</option>
+<option value="despesa">Despesa</option>
+</select>
+
+<input type="text" id="descricao" placeholder="Descrição">
+
+<input type="number" id="valor" placeholder="Valor">
+
+<label>Parcelado?</label>
+<select id="parcelado">
+<option value="nao">Não</option>
+<option value="sim">Sim</option>
+</select>
+
+<input type="number" id="parcelas" placeholder="Quantidade de parcelas" style="display:none">
+
+<input type="date" id="data">
+
+<button onclick="adicionar()">Adicionar</button>
+</div>
+
+<div class="card">
+<h3>Resumo</h3>
+<div id="saldo"></div>
+</div>
+
+<div class="card">
+<h3>Rendas</h3>
+<div id="listaRenda"></div>
+</div>
+
+<div class="card">
+<h3>Despesas</h3>
+<div id="listaDespesa"></div>
+</div>
+
+</div>
+
+<script>
+let dados = JSON.parse(localStorage.getItem("dados")) || {};
+let editando = null;
+
+const mesSelect = document.getElementById("mesSelect");
+
+function gerarMeses(){
+let hoje = new Date();
+for(let i=-60;i<120;i++){
+let data = new Date(hoje.getFullYear(), hoje.getMonth()+i,1);
+let chave = data.getFullYear()+"-"+(data.getMonth()+1);
+let nome = data.toLocaleString('pt-BR',{month:'long',year:'numeric'});
+let option = document.createElement("option");
+option.value=chave;
+option.textContent=nome;
+mesSelect.appendChild(option);
+}
+mesSelect.value = hoje.getFullYear()+"-"+(hoje.getMonth()+1);
+}
+
+function adicionar(){
+let tipo = document.getElementById("tipo").value;
+let descricao = document.getElementById("descricao").value;
+let valor = parseFloat(document.getElementById("valor").value);
+let parcelado = document.getElementById("parcelado").value;
+let parcelas = parseInt(document.getElementById("parcelas").value) || 1;
+let data = new Date(document.getElementById("data").value);
+
+if(!descricao || !valor || !data) return alert("Preencha tudo");
+
+if(parcelado==="nao") parcelas=1;
+
+for(let i=0;i<parcelas;i++){
+let novaData = new Date(data.getFullYear(), data.getMonth()+i,1);
+let chave = novaData.getFullYear()+"-"+(novaData.getMonth()+1);
+if(!dados[chave]) dados[chave]=[];
+dados[chave].push({
+id: Date.now()+Math.random(),
+tipo,
+descricao: parcelas>1 ? descricao+" ("+(i+1)+"/"+parcelas+")" : descricao,
+valor
+});
+}
+
+localStorage.setItem("dados",JSON.stringify(dados));
+limpar();
+carregar();
+}
+
+function carregar(){
+let mes = mesSelect.value;
+let lista = dados[mes] || [];
+
+let rendaDiv = document.getElementById("listaRenda");
+let despesaDiv = document.getElementById("listaDespesa");
+let saldoDiv = document.getElementById("saldo");
+
+rendaDiv.innerHTML="";
+despesaDiv.innerHTML="";
+
+let totalR=0;
+let totalD=0;
+
+lista.forEach(item=>{
+let div = document.createElement("div");
+div.className="item";
+
+let texto = document.createElement("span");
+texto.textContent = item.descricao+" - R$ "+item.valor.toFixed(2);
+texto.className = item.tipo==="renda" ? "renda":"despesa";
+
+let botoes = document.createElement("div");
+
+let btnE = document.createElement("button");
+btnE.textContent="Editar";
+btnE.className="editar";
+btnE.onclick=()=>editar(item.id);
+
+let btnX = document.createElement("button");
+btnX.textContent="X";
+btnX.className="excluir";
+btnX.onclick=()=>excluir(item.id);
+
+botoes.appendChild(btnE);
+botoes.appendChild(btnX);
+
+div.appendChild(texto);
+div.appendChild(botoes);
+
+if(item.tipo==="renda"){
+rendaDiv.appendChild(div);
+totalR+=item.valor;
+}else{
+despesaDiv.appendChild(div);
+totalD+=item.valor;
+}
+});
+
+let saldo = totalR-totalD;
+
+saldoDiv.innerHTML = "Saldo: R$ "+saldo.toFixed(2);
+saldoDiv.className = saldo>=0 ? "saldo-positivo":"saldo-negativo";
+}
+
+function excluir(id){
+let mes = mesSelect.value;
+dados[mes]=dados[mes].filter(item=>item.id!==id);
+localStorage.setItem("dados",JSON.stringify(dados));
+carregar();
+}
+
+function editar(id){
+let mes = mesSelect.value;
+let item = dados[mes].find(i=>i.id===id);
+document.getElementById("descricao").value=item.descricao;
+document.getElementById("valor").value=item.valor;
+document.getElementById("tipo").value=item.tipo;
+editando=id;
+excluir(id);
+}
+
+function limpar(){
+document.getElementById("descricao").value="";
+document.getElementById("valor").value="";
+document.getElementById("parcelas").value="";
+}
+
+document.getElementById("parcelado").addEventListener("change",function(){
+document.getElementById("parcelas").style.display=
+this.value==="sim"?"block":"none";
+});
+
+mesSelect.addEventListener("change",carregar);
+
+gerarMeses();
+carregar();
+</script>
+
+</body>
+</html>
