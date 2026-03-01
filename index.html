@@ -20,6 +20,7 @@ background:white;
 padding:15px;
 border-radius:12px;
 margin-bottom:15px;
+box-shadow:0 3px 10px rgba(0,0,0,.05);
 }
 
 input,select,button{
@@ -33,8 +34,8 @@ border:1px solid #ccc;
 button{
 background:#22c55e;
 color:white;
-border:none;
 font-weight:bold;
+border:none;
 }
 
 .item{
@@ -75,7 +76,8 @@ font-weight:bold;
 
 <div class="card">
 
-<select id="mes"></select>
+<label>Mês</label>
+<select id="mesSelecionado"></select>
 
 <input type="text" id="descricao" placeholder="Descrição">
 <input type="number" id="valor" placeholder="Valor">
@@ -107,49 +109,53 @@ font-weight:bold;
 
 <script>
 
+/* BANCO LOCAL */
 let dados=JSON.parse(localStorage.getItem("financeiroApp"))||{};
 
-const hoje=new Date();
-const mesSelect=document.getElementById("mes");
-
-/* MESES INFINITOS */
+/* GERAR MESES INFINITOS */
 function gerarMeses(){
 
-mesSelect.innerHTML="";
+const select=document.getElementById("mesSelecionado");
+select.innerHTML="";
+
+const hoje=new Date();
 
 for(let i=-60;i<120;i++){
 
 let data=new Date(hoje.getFullYear(),hoje.getMonth()+i);
 
-let nome=data.toLocaleString('pt-BR',{
+let mes=data.toLocaleString('pt-BR',{
 month:'long',
 year:'numeric'
 });
 
 let option=document.createElement("option");
-option.value=nome;
-option.textContent=nome;
+option.value=mes;
+option.textContent=mes;
 
-mesSelect.appendChild(option);
+select.appendChild(option);
 
 }
 
-mesSelect.selectedIndex=60;
-
+select.selectedIndex=60;
 }
 
 gerarMeses();
 
-/* Parcelamento */
+/* PARCELAMENTO */
 document.getElementById("parcelado").addEventListener("change",function(){
+
 document.getElementById("parcelas").style.display=
 this.value==="sim"?"block":"none";
+
 });
 
+/* SALVAR */
 function salvar(){
 localStorage.setItem("financeiroApp",JSON.stringify(dados));
 }
 
+/* ADICIONAR */
 function adicionar(){
 
 let desc=document.getElementById("descricao").value;
@@ -159,10 +165,11 @@ let tipo=document.getElementById("tipo").value;
 let parcelado=document.getElementById("parcelado").value;
 let qtd=parseInt(document.getElementById("parcelas").value)||1;
 
-let mesAtual=mesSelect.value;
+let mesSelecionado=document.getElementById("mesSelecionado").value;
 
-if(!dados[mesAtual]) dados[mesAtual]=[];
+if(!dados[mesSelecionado]) dados[mesSelecionado]=[];
 
+/* PARCELADO */
 if(parcelado==="sim" && qtd>1){
 
 for(let i=0;i<qtd;i++){
@@ -188,7 +195,7 @@ tipo:tipo
 
 }else{
 
-dados[mesAtual].push({
+dados[mesSelecionado].push({
 id:Date.now()+Math.random(),
 descricao:desc,
 valor:valor,
@@ -202,6 +209,7 @@ atualizar();
 
 }
 
+/* EXCLUIR */
 function excluir(mes,id){
 
 dados[mes]=dados[mes].filter(i=>i.id!==id);
@@ -210,6 +218,7 @@ atualizar();
 
 }
 
+/* EDITAR */
 function editar(mes,id){
 
 let item=dados[mes].find(i=>i.id===id);
@@ -229,9 +238,10 @@ atualizar();
 
 }
 
+/* ATUALIZAR TELA */
 function atualizar(){
 
-let mes=mesSelect.value;
+let mes=document.getElementById("mesSelecionado").value;
 
 let lista=document.getElementById("lista");
 lista.innerHTML="";
@@ -270,11 +280,11 @@ saldo.className="saldo "+(total>=0?"positivo":"negativo");
 
 }
 
-mesSelect.addEventListener("change",atualizar);
+document.getElementById("mesSelecionado").addEventListener("change",atualizar);
 
 atualizar();
 
 </script>
 
 </body>
-</html>
+</html> 
