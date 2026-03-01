@@ -1,217 +1,211 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Controle Financeiro Ariane</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Controle Financeiro Ariane</title>
 
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#2ecc71">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#2ecc71">
 
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f4f6f9;
-      margin: 0;
-      padding: 20px;
-    }
+<style>
+body{
+  font-family: Arial, sans-serif;
+  background:#f4f6f9;
+  margin:0;
+  padding:20px;
+}
 
-    h1 {
-      text-align: center;
-      color: #333;
-    }
+h1{text-align:center;}
 
-    .card {
-      background: white;
-      padding: 15px;
-      border-radius: 12px;
-      margin-bottom: 20px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-    }
+.card{
+  background:white;
+  padding:15px;
+  border-radius:12px;
+  margin-bottom:20px;
+  box-shadow:0 4px 10px rgba(0,0,0,0.05);
+}
 
-    input, select, button {
-      width: 100%;
-      padding: 10px;
-      margin: 5px 0;
-      border-radius: 8px;
-      border: 1px solid #ddd;
-      font-size: 14px;
-    }
+input,select,button{
+  width:100%;
+  padding:10px;
+  margin:5px 0;
+  border-radius:8px;
+  border:1px solid #ddd;
+}
 
-    button {
-      background: #2ecc71;
-      color: white;
-      border: none;
-      font-weight: bold;
-    }
+button{
+  background:#2ecc71;
+  color:white;
+  border:none;
+  font-weight:bold;
+}
 
-    button:hover {
-      opacity: 0.9;
-    }
+.renda{color:#27ae60;font-weight:bold;}
+.despesa{color:#e74c3c;font-weight:bold;}
 
-    .renda {
-      color: #27ae60;
-      font-weight: bold;
-    }
+.item{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin:5px 0;
+}
 
-    .despesa {
-      color: #e74c3c;
-      font-weight: bold;
-    }
+.botoes button{
+  width:auto;
+  padding:5px 8px;
+  margin-left:5px;
+  font-size:12px;
+  background:#ddd;
+  color:#333;
+}
 
-    .saldo {
-      font-size: 20px;
-      font-weight: bold;
-      text-align: center;
-    }
+.saldo{
+  text-align:center;
+  font-size:20px;
+  font-weight:bold;
+}
 
-    .positivo { color: #27ae60; }
-    .negativo { color: #e74c3c; }
-  </style>
+.positivo{color:#27ae60;}
+.negativo{color:#e74c3c;}
+</style>
 </head>
 <body>
 
 <h1>Controle Financeiro</h1>
 
 <div class="card">
-  <select id="mes"></select>
+<select id="mes"></select>
 </div>
 
 <div class="card">
-  <input type="text" id="descricao" placeholder="Descrição">
-  <input type="number" id="valor" placeholder="Valor">
-  
-  <select id="tipo">
-    <option value="renda">Renda</option>
-    <option value="despesa">Despesa</option>
-  </select>
-
-  <select id="parcelado">
-    <option value="nao">À vista</option>
-    <option value="sim">Parcelado</option>
-  </select>
-
-  <input type="number" id="parcelas" placeholder="Quantidade de parcelas" style="display:none">
-
-  <button onclick="adicionar()">Adicionar</button>
+<input type="text" id="descricao" placeholder="Descrição">
+<input type="number" id="valor" placeholder="Valor">
+<select id="tipo">
+<option value="renda">Renda</option>
+<option value="despesa">Despesa</option>
+</select>
+<button onclick="adicionar()">Adicionar</button>
 </div>
 
 <div class="card">
-  <div class="saldo" id="saldo"></div>
+<div id="saldo" class="saldo"></div>
 </div>
 
 <div class="card">
-  <h3>Rendas</h3>
-  <div id="listaRendas"></div>
+<h3>Rendas</h3>
+<div id="listaRendas"></div>
 
-  <h3>Despesas</h3>
-  <div id="listaDespesas"></div>
+<h3>Despesas</h3>
+<div id="listaDespesas"></div>
 </div>
 
 <script>
-  const mesSelect = document.getElementById("mes");
-  const parceladoSelect = document.getElementById("parcelado");
-  const parcelasInput = document.getElementById("parcelas");
+const mesSelect=document.getElementById("mes");
+const hoje=new Date();
 
-  const meses = [];
-  const hoje = new Date();
-  for (let i = -24; i < 60; i++) {
-    const data = new Date(hoje.getFullYear(), hoje.getMonth() + i);
-    const nome = data.toLocaleString('pt-BR', { month: 'long', year: 'numeric' });
-    meses.push(nome);
-  }
+for(let i=-24;i<60;i++){
+  const data=new Date(hoje.getFullYear(),hoje.getMonth()+i);
+  const nome=data.toLocaleString('pt-BR',{month:'long',year:'numeric'});
+  const option=document.createElement("option");
+  option.value=nome;
+  option.textContent=nome;
+  mesSelect.appendChild(option);
+}
 
-  meses.forEach(m => {
-    const option = document.createElement("option");
-    option.value = m;
-    option.textContent = m;
-    mesSelect.appendChild(option);
-  });
+mesSelect.selectedIndex=24;
 
-  mesSelect.value = meses[24];
+function salvar(dados){
+  localStorage.setItem("financeiroAriane",JSON.stringify(dados));
+}
 
-  parceladoSelect.addEventListener("change", () => {
-    parcelasInput.style.display = parceladoSelect.value === "sim" ? "block" : "none";
-  });
+function carregar(){
+  return JSON.parse(localStorage.getItem("financeiroAriane"))||{};
+}
 
-  function salvar(dados) {
-    localStorage.setItem("financeiroAriane", JSON.stringify(dados));
-  }
+function adicionar(){
+  const descricao=document.getElementById("descricao").value;
+  const valor=parseFloat(document.getElementById("valor").value);
+  const tipo=document.getElementById("tipo").value;
+  const mes=mesSelect.value;
 
-  function carregar() {
-    return JSON.parse(localStorage.getItem("financeiroAriane")) || {};
-  }
+  if(!descricao||!valor)return;
 
-  function adicionar() {
-    const descricao = document.getElementById("descricao").value;
-    const valor = parseFloat(document.getElementById("valor").value);
-    const tipo = document.getElementById("tipo").value;
-    const mes = mesSelect.value;
-    const parcelado = parceladoSelect.value;
-    const parcelas = parseInt(parcelasInput.value);
+  let dados=carregar();
+  if(!dados[mes])dados[mes]=[];
 
-    if (!descricao || !valor) return;
+  dados[mes].push({descricao,valor,tipo});
 
-    let dados = carregar();
+  salvar(dados);
+  atualizar();
+}
 
-    if (!dados[mes]) dados[mes] = [];
+function excluir(index){
+  const mes=mesSelect.value;
+  let dados=carregar();
+  dados[mes].splice(index,1);
+  salvar(dados);
+  atualizar();
+}
 
-    if (parcelado === "sim" && parcelas > 1) {
-      for (let i = 0; i < parcelas; i++) {
-        const data = new Date(hoje.getFullYear(), hoje.getMonth() + i);
-        const nomeMes = data.toLocaleString('pt-BR', { month: 'long', year: 'numeric' });
+function editar(index){
+  const mes=mesSelect.value;
+  let dados=carregar();
+  const item=dados[mes][index];
 
-        if (!dados[nomeMes]) dados[nomeMes] = [];
+  const novaDescricao=prompt("Editar descrição:",item.descricao);
+  const novoValor=parseFloat(prompt("Editar valor:",item.valor));
 
-        dados[nomeMes].push({
-          descricao: descricao + ` (${i+1}/${parcelas})`,
-          valor,
-          tipo
-        });
-      }
-    } else {
-      dados[mes].push({ descricao, valor, tipo });
-    }
-
+  if(novaDescricao && novoValor){
+    item.descricao=novaDescricao;
+    item.valor=novoValor;
     salvar(dados);
     atualizar();
   }
+}
 
-  function atualizar() {
-    const mes = mesSelect.value;
-    const dados = carregar();
-    const lista = dados[mes] || [];
+function atualizar(){
+  const mes=mesSelect.value;
+  const dados=carregar();
+  const lista=dados[mes]||[];
 
-    const rendasDiv = document.getElementById("listaRendas");
-    const despesasDiv = document.getElementById("listaDespesas");
-    const saldoDiv = document.getElementById("saldo");
+  const rendasDiv=document.getElementById("listaRendas");
+  const despesasDiv=document.getElementById("listaDespesas");
+  const saldoDiv=document.getElementById("saldo");
 
-    rendasDiv.innerHTML = "";
-    despesasDiv.innerHTML = "";
+  rendasDiv.innerHTML="";
+  despesasDiv.innerHTML="";
 
-    let total = 0;
+  let total=0;
 
-    lista
-      .filter(item => item.tipo === "renda")
-      .forEach(item => {
-        rendasDiv.innerHTML += `<div class="renda">${item.descricao} - R$ ${item.valor.toFixed(2)}</div>`;
-        total += item.valor;
-      });
+  lista.forEach((item,index)=>{
+    const div=document.createElement("div");
+    div.className="item "+item.tipo;
 
-    lista
-      .filter(item => item.tipo === "despesa")
-      .forEach(item => {
-        despesasDiv.innerHTML += `<div class="despesa">${item.descricao} - R$ ${item.valor.toFixed(2)}</div>`;
-        total -= item.valor;
-      });
+    div.innerHTML=`
+      <span>${item.descricao} - R$ ${item.valor.toFixed(2)}</span>
+      <div class="botoes">
+        <button onclick="editar(${index})">Editar</button>
+        <button onclick="excluir(${index})">Excluir</button>
+      </div>
+    `;
 
-    saldoDiv.textContent = "Saldo: R$ " + total.toFixed(2);
-    saldoDiv.className = "saldo " + (total >= 0 ? "positivo" : "negativo");
-  }
+    if(item.tipo==="renda"){
+      rendasDiv.appendChild(div);
+      total+=item.valor;
+    }else{
+      despesasDiv.appendChild(div);
+      total-=item.valor;
+    }
+  });
 
-  mesSelect.addEventListener("change", atualizar);
-  atualizar();
+  saldoDiv.textContent="Saldo: R$ "+total.toFixed(2);
+  saldoDiv.className="saldo "+(total>=0?"positivo":"negativo");
+}
+
+mesSelect.addEventListener("change",atualizar);
+atualizar();
 </script>
 
 </body>
-</html>
+</html> 
