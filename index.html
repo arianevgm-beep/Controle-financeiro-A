@@ -5,10 +5,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Financeiro Master</title>
+<title>Financeiro Ariane</title>
 
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#0ea5e9">
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
@@ -18,8 +17,8 @@ body{
 background:#0f172a;
 color:white;
 font-family:Arial;
-margin:0;
 padding:20px;
+margin:0;
 }
 
 .container{
@@ -32,7 +31,6 @@ background:#1e293b;
 padding:18px;
 border-radius:16px;
 margin-bottom:15px;
-box-shadow:0 5px 15px rgba(0,0,0,.2);
 }
 
 input,select,button{
@@ -44,7 +42,7 @@ border:none;
 }
 
 button{
-background:#0ea5e9;
+background:#22c55e;
 color:white;
 font-weight:bold;
 }
@@ -77,18 +75,13 @@ margin:6px 0;
 
 <div class="container">
 
-<h2>💎 Financeiro Master</h2>
-
-<div id="loginBox" class="card">
-<h3>🔐 Login</h3>
-<input type="password" id="senha" placeholder="Senha">
-<button onclick="entrar()">Entrar</button>
-</div>
-
-<div id="appBox" style="display:none">
+<h2>💰 Financeiro Ariane</h2>
 
 <div class="card">
-<h3>Adicionar</h3>
+<select id="mes"></select>
+</div>
+
+<div class="card">
 
 <input type="text" id="descricao" placeholder="Descrição">
 <input type="number" id="valor" placeholder="Valor">
@@ -103,9 +96,10 @@ margin:6px 0;
 <option value="sim">Parcelado</option>
 </select>
 
-<input type="number" id="parcelas" placeholder="Quantidade de parcelas" style="display:none">
+<input type="number" id="parcelas" placeholder="Qtd parcelas" style="display:none">
 
 <button onclick="adicionar()">Adicionar</button>
+
 </div>
 
 <div class="card">
@@ -123,26 +117,31 @@ margin:6px 0;
 
 </div>
 
-</div>
-
 <script>
 
-let senhaPadrao="1234";
+let dados=JSON.parse(localStorage.getItem("financeiroFinal"))||{};
 
-let dados=JSON.parse(localStorage.getItem("masterFinanceiro"))||{};
+const mesSelect=document.getElementById("mes");
+const hoje=new Date();
 
-let chart;
-
-function entrar(){
-if(document.getElementById("senha").value===senhaPadrao){
-document.getElementById("loginBox").style.display="none";
-document.getElementById("appBox").style.display="block";
-atualizar();
-}else alert("Senha errada");
+for(let i=-24;i<60;i++){
+let data=new Date(hoje.getFullYear(),hoje.getMonth()+i);
+let nome=data.toLocaleString('pt-BR',{month:'long',year:'numeric'});
+let option=document.createElement("option");
+option.value=nome;
+option.textContent=nome;
+mesSelect.appendChild(option);
 }
 
+mesSelect.selectedIndex=24;
+
+document.getElementById("parcelado").addEventListener("change",function(){
+document.getElementById("parcelas").style.display=
+this.value==="sim"?"block":"none";
+});
+
 function salvar(){
-localStorage.setItem("masterFinanceiro",JSON.stringify(dados));
+localStorage.setItem("financeiroFinal",JSON.stringify(dados));
 }
 
 function adicionar(){
@@ -150,38 +149,59 @@ function adicionar(){
 let desc=document.getElementById("descricao").value;
 let valor=parseFloat(document.getElementById("valor").value);
 let tipo=document.getElementById("tipo").value;
+let parcelado=document.getElementById("parcelado").value;
+let qtd=parseInt(document.getElementById("parcelas").value)||1;
 
 if(!desc||!valor)return;
 
-let mes=new Date().toLocaleString('pt-BR',{month:'long',year:'numeric'});
+if(parcelado==="sim" && qtd>1){
+
+for(let i=0;i<qtd;i++){
+
+let data=new Date();
+data.setMonth(data.getMonth()+i);
+
+let mes=data.toLocaleString('pt-BR',{month:'long',year:'numeric'});
 
 if(!dados[mes]) dados[mes]=[];
 
 dados[mes].push({
+id:Date.now()+i,
+descricao:desc+` (${i+1}/${qtd})`,
+valor:valor,
+tipo:tipo
+});
+
+}
+
+}else{
+
+let mesAtual=mesSelect.value;
+
+if(!dados[mesAtual]) dados[mesAtual]=[];
+
+dados[mesAtual].push({
 id:Date.now(),
 descricao:desc,
 valor:valor,
 tipo:tipo
 });
 
+}
+
 salvar();
 atualizar();
 }
 
-function excluir(id){
-let mes=obterMes();
+function excluir(mes,id){
 dados[mes]=dados[mes].filter(i=>i.id!==id);
 salvar();
 atualizar();
 }
 
-function obterMes(){
-return new Date().toLocaleString('pt-BR',{month:'long',year:'numeric'});
-}
-
 function atualizar(){
 
-let mes=obterMes();
+let mes=mesSelect.value;
 let lista=dados[mes]||[];
 
 let listaDiv=document.getElementById("lista");
@@ -200,7 +220,7 @@ div.className="item "+item.tipo;
 
 div.innerHTML=`
 <span>${item.descricao} - R$ ${item.valor.toFixed(2)}</span>
-<button onclick="excluir(${item.id})">X</button>
+<button onclick="excluir('${mes}',${item.id})">X</button>
 `;
 
 listaDiv.appendChild(div);
@@ -222,9 +242,11 @@ gerarGrafico(totalR,totalD);
 
 }
 
+let chart;
+
 function gerarGrafico(r,d){
 
-let ctx=document.getElementById("grafico");
+let ctx=document.getElementById("grafico").getContext("2d");
 
 if(chart) chart.destroy();
 
@@ -232,11 +254,17 @@ chart=new Chart(ctx,{
 type:"doughnut",
 data:{
 labels:["Rendas","Despesas"],
-datasets:[{data:[r,d]}]
+datasets:[{
+data:[r,d]
+}]
 }
 });
 
 }
+
+mesSelect.addEventListener("change",atualizar);
+
+atualizar();
 
 </script>
 
