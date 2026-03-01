@@ -1,0 +1,46 @@
+function adicionar(){
+
+let desc=document.getElementById("descricao").value;
+let valor=parseFloat(document.getElementById("valor").value);
+let tipo=document.getElementById("tipo").value;
+let parcelado=document.getElementById("parcelado").value;
+let parcelas=parseInt(document.getElementById("parcelas").value)||1;
+
+let mesAtual=new Date().toLocaleString('pt-BR',{month:'long',year:'numeric'});
+
+if(!dados[mesAtual]) dados[mesAtual]=[];
+
+if(parcelado==="sim" && parcelas>1){
+
+for(let i=0;i<parcelas;i++){
+
+let data=new Date();
+data.setMonth(data.getMonth()+i);
+
+let mes=data.toLocaleString('pt-BR',{month:'long',year:'numeric'});
+
+if(!dados[mes]) dados[mes]=[];
+
+dados[mes].push({
+id:Date.now()+i,
+descricao:desc+` (${i+1}/${parcelas})`,
+valor:valor,
+tipo:tipo
+});
+
+}
+
+}else{
+
+dados[mesAtual].push({
+id:Date.now(),
+descricao:desc,
+valor:valor,
+tipo:tipo
+});
+
+}
+
+salvar();
+atualizar();
+} 
