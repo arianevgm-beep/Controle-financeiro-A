@@ -38,9 +38,25 @@ font-weight:bold;
 .renda{color:green;}
 .despesa{color:red;}
 
-</style>
+.item{
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin:6px 0;
+}
 
+.item button{
+width:auto;
+margin-left:5px;
+padding:5px 8px;
+font-size:12px;
+background:#ddd;
+color:black;
+}
+
+</style>
 </head>
+
 <body>
 
 <h2>💰 Controle Financeiro</h2>
@@ -48,7 +64,6 @@ font-weight:bold;
 <div class="card">
 
 <input type="text" id="descricao" placeholder="Descrição">
-
 <input type="number" id="valor" placeholder="Valor">
 
 <select id="tipo">
@@ -81,18 +96,19 @@ document.getElementById("parcelas").style.display=
 this.value==="sim"?"block":"none";
 });
 
+function salvar(){
+localStorage.setItem("fin",JSON.stringify(dados));
+}
+
 function adicionar(){
 
 let desc=document.getElementById("descricao").value;
 let valor=parseFloat(document.getElementById("valor").value);
 let tipo=document.getElementById("tipo").value;
-
 let parcelado=document.getElementById("parcelado").value;
 let parcelas=parseInt(document.getElementById("parcelas").value)||1;
 
-let mes=new Date().toLocaleString('pt-BR',{month:'long',year:'numeric'});
-
-if(!dados[mes]) dados[mes]=[];
+let mesAtual=new Date().toLocaleString('pt-BR',{month:'long',year:'numeric'});
 
 if(parcelado==="sim" && parcelas>1){
 
@@ -101,11 +117,12 @@ for(let i=0;i<parcelas;i++){
 let data=new Date();
 data.setMonth(data.getMonth()+i);
 
-let mesNome=data.toLocaleString('pt-BR',{month:'long',year:'numeric'});
+let mes=data.toLocaleString('pt-BR',{month:'long',year:'numeric'});
 
-if(!dados[mesNome]) dados[mesNome]=[];
+if(!dados[mes]) dados[mes]=[];
 
-dados[mesNome].push({
+dados[mes].push({
+id:Date.now()+i,
 descricao:desc+` (${i+1}/${parcelas})`,
 valor:valor,
 tipo:tipo
@@ -115,7 +132,10 @@ tipo:tipo
 
 }else{
 
-dados[mes].push({
+if(!dados[mesAtual]) dados[mesAtual]=[];
+
+dados[mesAtual].push({
+id:Date.now(),
 descricao:desc,
 valor:valor,
 tipo:tipo
@@ -123,36 +143,65 @@ tipo:tipo
 
 }
 
-localStorage.setItem("fin",JSON.stringify(dados));
+salvar();
 atualizar();
+
+}
+
+function excluir(mes,id){
+
+dados[mes]=dados[mes].filter(i=>i.id!==id);
+
+salvar();
+atualizar();
+
+}
+
+function editar(mes,id){
+
+let item=dados[mes].find(i=>i.id===id);
+
+let novoDesc=prompt("Editar descrição",item.descricao);
+let novoValor=parseFloat(prompt("Editar valor",item.valor));
+
+if(novoDesc && novoValor){
+
+item.descricao=novoDesc;
+item.valor=novoValor;
+
+salvar();
+atualizar();
+
+}
 
 }
 
 function atualizar(){
 
 let mes=new Date().toLocaleString('pt-BR',{month:'long',year:'numeric'});
+
 let lista=document.getElementById("lista");
-
 lista.innerHTML="";
-
-let total=0;
 
 if(dados[mes]){
 
 dados[mes].forEach(item=>{
 
 let div=document.createElement("div");
+div.className="item "+item.tipo;
 
 div.innerHTML=`
-<span class="${item.tipo}">
+<span>
 ${item.descricao} - R$ ${item.valor.toFixed(2)}
 </span>
+
+<div>
+<button onclick="editar('${mes}',${item.id})">Editar</button>
+<button onclick="excluir('${mes}',${item.id})">Excluir</button>
+</div>
 `;
 
 lista.appendChild(div);
-
-if(item.tipo==="renda") total+=item.valor;
-else total-=item.valor;
 
 });
 
