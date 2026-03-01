@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Financeiro App</title>
+<title>Financeiro Ariane</title>
+
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#22c55e">
 
 <style>
 
@@ -41,17 +43,17 @@ border:none;
 .item{
 display:flex;
 justify-content:space-between;
-align-items:center;
 margin:6px 0;
+align-items:center;
 }
 
 .item button{
 width:auto;
-margin-left:5px;
-padding:5px 8px;
 font-size:12px;
+padding:5px 8px;
 background:#ddd;
 color:black;
+margin-left:5px;
 }
 
 .renda{color:green;}
@@ -110,15 +112,15 @@ font-weight:bold;
 <script>
 
 /* BANCO LOCAL */
-let dados=JSON.parse(localStorage.getItem("financeiroApp"))||{};
+let dados=JSON.parse(localStorage.getItem("financeiroFinal"))||{};
 
 /* GERAR MESES INFINITOS */
 function gerarMeses(){
 
-const select=document.getElementById("mesSelecionado");
+let select=document.getElementById("mesSelecionado");
 select.innerHTML="";
 
-const hoje=new Date();
+let hoje=new Date();
 
 for(let i=-60;i<120;i++){
 
@@ -142,7 +144,7 @@ select.selectedIndex=60;
 
 gerarMeses();
 
-/* PARCELAMENTO */
+/* PARCELADO */
 document.getElementById("parcelado").addEventListener("change",function(){
 
 document.getElementById("parcelas").style.display=
@@ -152,7 +154,7 @@ this.value==="sim"?"block":"none";
 
 /* SALVAR */
 function salvar(){
-localStorage.setItem("financeiroApp",JSON.stringify(dados));
+localStorage.setItem("financeiroFinal",JSON.stringify(dados));
 }
 
 /* ADICIONAR */
@@ -169,7 +171,7 @@ let mesSelecionado=document.getElementById("mesSelecionado").value;
 
 if(!dados[mesSelecionado]) dados[mesSelecionado]=[];
 
-/* PARCELADO */
+/* PARCELAMENTO */
 if(parcelado==="sim" && qtd>1){
 
 for(let i=0;i<qtd;i++){
@@ -274,8 +276,8 @@ lista.appendChild(div);
 }
 
 let saldo=document.getElementById("saldo");
-saldo.innerHTML="💰 Saldo: R$ "+total.toFixed(2);
 
+saldo.innerHTML="💰 Saldo: R$ "+total.toFixed(2);
 saldo.className="saldo "+(total>=0?"positivo":"negativo");
 
 }
@@ -287,4 +289,4 @@ atualizar();
 </script>
 
 </body>
-</html> 
+</html>
