@@ -1,289 +1,216 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Controle Financeiro</title>
-<style>
-body{
-font-family: Arial;
-background:#f4f6f9;
-margin:0;
-padding:15px;
-}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Controle Financeiro Ariane</title>
 
-h1{
-text-align:center;
-}
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#2ecc71">
 
-.container{
-max-width:500px;
-margin:auto;
-}
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f9;
+      margin: 0;
+      padding: 20px;
+    }
 
-.card{
-background:white;
-padding:15px;
-border-radius:10px;
-margin-bottom:15px;
-box-shadow:0 2px 5px rgba(0,0,0,0.1);
-}
+    h1 {
+      text-align: center;
+      color: #333;
+    }
 
-input, select, button{
-width:100%;
-padding:10px;
-margin-top:5px;
-margin-bottom:10px;
-border-radius:8px;
-border:1px solid #ccc;
-}
+    .card {
+      background: white;
+      padding: 15px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    }
 
-button{
-background:#4CAF50;
-color:white;
-font-weight:bold;
-border:none;
-}
+    input, select, button {
+      width: 100%;
+      padding: 10px;
+      margin: 5px 0;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+      font-size: 14px;
+    }
 
-button:hover{
-opacity:0.9;
-}
+    button {
+      background: #2ecc71;
+      color: white;
+      border: none;
+      font-weight: bold;
+    }
 
-.renda{
-color:green;
-font-weight:bold;
-}
+    button:hover {
+      opacity: 0.9;
+    }
 
-.despesa{
-color:red;
-font-weight:bold;
-}
+    .renda {
+      color: #27ae60;
+      font-weight: bold;
+    }
 
-.saldo-positivo{
-color:green;
-font-size:20px;
-font-weight:bold;
-}
+    .despesa {
+      color: #e74c3c;
+      font-weight: bold;
+    }
 
-.saldo-negativo{
-color:red;
-font-size:20px;
-font-weight:bold;
-}
+    .saldo {
+      font-size: 20px;
+      font-weight: bold;
+      text-align: center;
+    }
 
-.item{
-display:flex;
-justify-content:space-between;
-margin-bottom:8px;
-}
-
-.excluir{
-background:red;
-color:white;
-border:none;
-padding:5px 8px;
-border-radius:5px;
-}
-
-.editar{
-background:orange;
-color:white;
-border:none;
-padding:5px 8px;
-border-radius:5px;
-margin-right:5px;
-}
-</style>
+    .positivo { color: #27ae60; }
+    .negativo { color: #e74c3c; }
+  </style>
 </head>
 <body>
-
-<div class="container">
 
 <h1>Controle Financeiro</h1>
 
 <div class="card">
-<label>Mês:</label>
-<select id="mesSelect"></select>
+  <select id="mes"></select>
 </div>
 
 <div class="card">
-<h3>Adicionar</h3>
+  <input type="text" id="descricao" placeholder="Descrição">
+  <input type="number" id="valor" placeholder="Valor">
+  
+  <select id="tipo">
+    <option value="renda">Renda</option>
+    <option value="despesa">Despesa</option>
+  </select>
 
-<select id="tipo">
-<option value="renda">Renda</option>
-<option value="despesa">Despesa</option>
-</select>
+  <select id="parcelado">
+    <option value="nao">À vista</option>
+    <option value="sim">Parcelado</option>
+  </select>
 
-<input type="text" id="descricao" placeholder="Descrição">
+  <input type="number" id="parcelas" placeholder="Quantidade de parcelas" style="display:none">
 
-<input type="number" id="valor" placeholder="Valor">
-
-<label>Parcelado?</label>
-<select id="parcelado">
-<option value="nao">Não</option>
-<option value="sim">Sim</option>
-</select>
-
-<input type="number" id="parcelas" placeholder="Quantidade de parcelas" style="display:none">
-
-<input type="date" id="data">
-
-<button onclick="adicionar()">Adicionar</button>
+  <button onclick="adicionar()">Adicionar</button>
 </div>
 
 <div class="card">
-<h3>Resumo</h3>
-<div id="saldo"></div>
+  <div class="saldo" id="saldo"></div>
 </div>
 
 <div class="card">
-<h3>Rendas</h3>
-<div id="listaRenda"></div>
-</div>
+  <h3>Rendas</h3>
+  <div id="listaRendas"></div>
 
-<div class="card">
-<h3>Despesas</h3>
-<div id="listaDespesa"></div>
-</div>
-
+  <h3>Despesas</h3>
+  <div id="listaDespesas"></div>
 </div>
 
 <script>
-let dados = JSON.parse(localStorage.getItem("dados")) || {};
-let editando = null;
+  const mesSelect = document.getElementById("mes");
+  const parceladoSelect = document.getElementById("parcelado");
+  const parcelasInput = document.getElementById("parcelas");
 
-const mesSelect = document.getElementById("mesSelect");
+  const meses = [];
+  const hoje = new Date();
+  for (let i = -24; i < 60; i++) {
+    const data = new Date(hoje.getFullYear(), hoje.getMonth() + i);
+    const nome = data.toLocaleString('pt-BR', { month: 'long', year: 'numeric' });
+    meses.push(nome);
+  }
 
-function gerarMeses(){
-let hoje = new Date();
-for(let i=-60;i<120;i++){
-let data = new Date(hoje.getFullYear(), hoje.getMonth()+i,1);
-let chave = data.getFullYear()+"-"+(data.getMonth()+1);
-let nome = data.toLocaleString('pt-BR',{month:'long',year:'numeric'});
-let option = document.createElement("option");
-option.value=chave;
-option.textContent=nome;
-mesSelect.appendChild(option);
-}
-mesSelect.value = hoje.getFullYear()+"-"+(hoje.getMonth()+1);
-}
+  meses.forEach(m => {
+    const option = document.createElement("option");
+    option.value = m;
+    option.textContent = m;
+    mesSelect.appendChild(option);
+  });
 
-function adicionar(){
-let tipo = document.getElementById("tipo").value;
-let descricao = document.getElementById("descricao").value;
-let valor = parseFloat(document.getElementById("valor").value);
-let parcelado = document.getElementById("parcelado").value;
-let parcelas = parseInt(document.getElementById("parcelas").value) || 1;
-let data = new Date(document.getElementById("data").value);
+  mesSelect.value = meses[24];
 
-if(!descricao || !valor || !data) return alert("Preencha tudo");
+  parceladoSelect.addEventListener("change", () => {
+    parcelasInput.style.display = parceladoSelect.value === "sim" ? "block" : "none";
+  });
 
-if(parcelado==="nao") parcelas=1;
+  function salvar(dados) {
+    localStorage.setItem("financeiroAriane", JSON.stringify(dados));
+  }
 
-for(let i=0;i<parcelas;i++){
-let novaData = new Date(data.getFullYear(), data.getMonth()+i,1);
-let chave = novaData.getFullYear()+"-"+(novaData.getMonth()+1);
-if(!dados[chave]) dados[chave]=[];
-dados[chave].push({
-id: Date.now()+Math.random(),
-tipo,
-descricao: parcelas>1 ? descricao+" ("+(i+1)+"/"+parcelas+")" : descricao,
-valor
-});
-}
+  function carregar() {
+    return JSON.parse(localStorage.getItem("financeiroAriane")) || {};
+  }
 
-localStorage.setItem("dados",JSON.stringify(dados));
-limpar();
-carregar();
-}
+  function adicionar() {
+    const descricao = document.getElementById("descricao").value;
+    const valor = parseFloat(document.getElementById("valor").value);
+    const tipo = document.getElementById("tipo").value;
+    const mes = mesSelect.value;
+    const parcelado = parceladoSelect.value;
+    const parcelas = parseInt(parcelasInput.value);
 
-function carregar(){
-let mes = mesSelect.value;
-let lista = dados[mes] || [];
+    if (!descricao || !valor) return;
 
-let rendaDiv = document.getElementById("listaRenda");
-let despesaDiv = document.getElementById("listaDespesa");
-let saldoDiv = document.getElementById("saldo");
+    let dados = carregar();
 
-rendaDiv.innerHTML="";
-despesaDiv.innerHTML="";
+    if (!dados[mes]) dados[mes] = [];
 
-let totalR=0;
-let totalD=0;
+    if (parcelado === "sim" && parcelas > 1) {
+      for (let i = 0; i < parcelas; i++) {
+        const data = new Date(hoje.getFullYear(), hoje.getMonth() + i);
+        const nomeMes = data.toLocaleString('pt-BR', { month: 'long', year: 'numeric' });
 
-lista.forEach(item=>{
-let div = document.createElement("div");
-div.className="item";
+        if (!dados[nomeMes]) dados[nomeMes] = [];
 
-let texto = document.createElement("span");
-texto.textContent = item.descricao+" - R$ "+item.valor.toFixed(2);
-texto.className = item.tipo==="renda" ? "renda":"despesa";
+        dados[nomeMes].push({
+          descricao: descricao + ` (${i+1}/${parcelas})`,
+          valor,
+          tipo
+        });
+      }
+    } else {
+      dados[mes].push({ descricao, valor, tipo });
+    }
 
-let botoes = document.createElement("div");
+    salvar(dados);
+    atualizar();
+  }
 
-let btnE = document.createElement("button");
-btnE.textContent="Editar";
-btnE.className="editar";
-btnE.onclick=()=>editar(item.id);
+  function atualizar() {
+    const mes = mesSelect.value;
+    const dados = carregar();
+    const lista = dados[mes] || [];
 
-let btnX = document.createElement("button");
-btnX.textContent="X";
-btnX.className="excluir";
-btnX.onclick=()=>excluir(item.id);
+    const rendasDiv = document.getElementById("listaRendas");
+    const despesasDiv = document.getElementById("listaDespesas");
+    const saldoDiv = document.getElementById("saldo");
 
-botoes.appendChild(btnE);
-botoes.appendChild(btnX);
+    rendasDiv.innerHTML = "";
+    despesasDiv.innerHTML = "";
 
-div.appendChild(texto);
-div.appendChild(botoes);
+    let total = 0;
 
-if(item.tipo==="renda"){
-rendaDiv.appendChild(div);
-totalR+=item.valor;
-}else{
-despesaDiv.appendChild(div);
-totalD+=item.valor;
-}
-});
+    lista
+      .filter(item => item.tipo === "renda")
+      .forEach(item => {
+        rendasDiv.innerHTML += `<div class="renda">${item.descricao} - R$ ${item.valor.toFixed(2)}</div>`;
+        total += item.valor;
+      });
 
-let saldo = totalR-totalD;
+    lista
+      .filter(item => item.tipo === "despesa")
+      .forEach(item => {
+        despesasDiv.innerHTML += `<div class="despesa">${item.descricao} - R$ ${item.valor.toFixed(2)}</div>`;
+        total -= item.valor;
+      });
 
-saldoDiv.innerHTML = "Saldo: R$ "+saldo.toFixed(2);
-saldoDiv.className = saldo>=0 ? "saldo-positivo":"saldo-negativo";
-}
+    saldoDiv.textContent = "Saldo: R$ " + total.toFixed(2);
+    saldoDiv.className = "saldo " + (total >= 0 ? "positivo" : "negativo");
+  }
 
-function excluir(id){
-let mes = mesSelect.value;
-dados[mes]=dados[mes].filter(item=>item.id!==id);
-localStorage.setItem("dados",JSON.stringify(dados));
-carregar();
-}
-
-function editar(id){
-let mes = mesSelect.value;
-let item = dados[mes].find(i=>i.id===id);
-document.getElementById("descricao").value=item.descricao;
-document.getElementById("valor").value=item.valor;
-document.getElementById("tipo").value=item.tipo;
-editando=id;
-excluir(id);
-}
-
-function limpar(){
-document.getElementById("descricao").value="";
-document.getElementById("valor").value="";
-document.getElementById("parcelas").value="";
-}
-
-document.getElementById("parcelado").addEventListener("change",function(){
-document.getElementById("parcelas").style.display=
-this.value==="sim"?"block":"none";
-});
-
-mesSelect.addEventListener("change",carregar);
-
-gerarMeses();
-carregar();
+  mesSelect.addEventListener("change", atualizar);
+  atualizar();
 </script>
 
 </body>
