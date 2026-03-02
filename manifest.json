@@ -1,23 +1,23 @@
 {
-  "name": "Financeiro Ariane",
-  "short_name": "Financeiro",
-  "description": "Aplicativo de controle financeiro pessoal com rendas, despesas e parcelamentos mensais",
-  "start_url": "./index.html",
-  "display": "standalone",
-  "background_color": "#f4f6f9",
-  "theme_color": "#22c55e",
-  "orientation": "portrait",
-  "lang": "pt-BR",
-  "icons": [
-    {
-      "src": "https://cdn-icons-png.flaticon.com/512/3135/3135715.png",
-      "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "https://cdn-icons-png.flaticon.com/512/3135/3135715.png",
-      "sizes": "512x512",
-      "type": "image/png"
-    }
-  ]
+"name":"Financeiro Ariane",
+"short_name":"Financeiro",
+"description":"Aplicativo financeiro pessoal para controle de gastos e rendas",
+"start_url":"./index.html",
+"display":"standalone",
+"background_color":"#ffffff",
+"theme_color":"#22c55e",
+"orientation":"portrait",
+"lang":"pt-BR",
+"icons":[
+{
+"src":"https://cdn-icons-png.flaticon.com/512/2331/2331941.png",
+"sizes":"192x192",
+"type":"image/png"
+},
+{
+"src":"https://cdn-icons-png.flaticon.com/512/2331/2331941.png",
+"sizes":"512x512",
+"type":"image/png"
+}
+]
 }
